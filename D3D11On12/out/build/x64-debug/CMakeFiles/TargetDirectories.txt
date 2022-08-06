@@ -1,0 +1,5 @@
+C:/Users/parksangwo/Desktop/Github/MSDirectXAnalysis/D3D11On12/out/build/x64-debug/CMakeFiles/edit_cache.dir
+C:/Users/parksangwo/Desktop/Github/MSDirectXAnalysis/D3D11On12/out/build/x64-debug/CMakeFiles/rebuild_cache.dir
+C:/Users/parksangwo/Desktop/Github/MSDirectXAnalysis/D3D11On12/out/build/x64-debug/D3D11On12/CMakeFiles/D3D11On12.dir
+C:/Users/parksangwo/Desktop/Github/MSDirectXAnalysis/D3D11On12/out/build/x64-debug/D3D11On12/CMakeFiles/edit_cache.dir
+C:/Users/parksangwo/Desktop/Github/MSDirectXAnalysis/D3D11On12/out/build/x64-debug/D3D11On12/CMakeFiles/rebuild_cache.dir
