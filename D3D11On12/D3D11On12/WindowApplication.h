@@ -2,6 +2,8 @@
 
 #include "DXSample.h"
 
+class DXSample;
+
 class WindowApplication
 {
 public:

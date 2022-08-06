@@ -22,3 +22,13 @@ private:
 	HRESULT mResult;
 
 };
+
+inline constexpr void HR(HRESULT hr)
+{
+	if (FAILED(hr))
+	{
+		throw DxException(hr);
+	}
+}
+
+void GetHardwareAdapter(IDXGIFactory1* factory, IDXGIAdapter1** adapter, bool requestHighPerformanceAdapter);

@@ -1,12 +1,13 @@
 ﻿#pragma once
 
 #include "Utils/DXSampleHelper.h"
+#include "WindowApplication.h"
 
 class DXSample
 {
 public:
 	DXSample() {}
-	DXSample(INT clientWidth, INT clientHeight, const UNISTR clientName);
+	DXSample(INT clientWidth, INT clientHeight, const UNISTR clientName, bool isWarpDevice);
 	const UNICHAR* GetTitle() const;
 	const INT GetWidth() const;
 	const INT GetHeight() const;
@@ -21,6 +22,7 @@ public:
 protected:
 	UNISTR mClientName;
 	INT mClientWidth, mClientHeight;
+	bool mIsWarpDevice;
 
 private:
 

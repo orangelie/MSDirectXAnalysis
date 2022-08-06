@@ -1,10 +1,11 @@
 ﻿#include "DXSample.h"
 
-DXSample::DXSample(INT clientWidth, INT clientHeight, const UNISTR clientName)
+DXSample::DXSample(INT clientWidth, INT clientHeight, const UNISTR clientName, bool isWarpDevice)
 {
 	mClientWidth = clientWidth;
 	mClientHeight = clientHeight;
 	mClientName = clientName;
+	mIsWarpDevice = isWarpDevice;
 }
 
 const UNICHAR* DXSample::GetTitle() const

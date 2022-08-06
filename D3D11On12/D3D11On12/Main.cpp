@@ -9,6 +9,6 @@ int __stdcall WinMain(
 	_In_ LPSTR lpCmdLine,
 	_In_ INT hCmdShow)
 {
-	D3D11On12 dxSample(1280, 720, "D3D11On12@orangelie");
+	D3D11On12 dxSample(1280, 720, "D3D11On12@orangelie", false);
 	return WindowApplication::Run(&dxSample, hInstance, hCmdShow);
 }
