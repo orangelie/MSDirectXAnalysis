@@ -3,10 +3,12 @@
 #include "Utils.h"
 
 #ifdef UNICODE
-#define UNISTR wchar_t*
+#define UNISTR	std::wstring
+#define UNICHAR wchar_t
 #else
-#define UNISTR char*
-#endif // !UNICODE
+#define UNISTR	std::string
+#define UNICHAR char
+#endif
 
 std::string HrToString(HRESULT hResult);
 

@@ -12,11 +12,13 @@ protected:
 	virtual void OnInit();
 	virtual void OnUpdate();
 	virtual void OnDraw();
+	virtual void OnKeyUp(WPARAM btnState, UINT x, UINT y);
+	virtual void OnKeyDown(WPARAM btnState, UINT x, UINT y);
 	virtual void OnDestroy();
 
-	const UNISTR mClientName = nullptr;
-	INT mClientWidth, mClientHeight;
+private:
 
 private:
+
 
 };
