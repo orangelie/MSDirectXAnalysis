@@ -28,9 +28,9 @@ int WindowApplication::Run(DXSample* dxSample, HINSTANCE hInstance, int hCmdShow
 		CW_USEDEFAULT, CW_USEDEFAULT,
 		rect.right - rect.left, rect.bottom - rect.top,
 		nullptr, nullptr, hInstance, dxSample);
-	ShowWindow(gHwnd, hCmdShow);
 
 	dxSample->OnInit();
+	ShowWindow(gHwnd, hCmdShow); /*> @ Warning @>> It must be in front of it.. <*/
 
 	MSG msg = {};
 

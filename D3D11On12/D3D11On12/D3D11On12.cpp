@@ -6,6 +6,7 @@ D3D11On12::D3D11On12(INT clientWidth, INT clientHeight, const UNISTR clientName,
 
 void D3D11On12::OnInit()
 {
+	LoadGraphicsDevice();
 	LoadPipeline();
 }
 
@@ -16,7 +17,31 @@ void D3D11On12::OnUpdate()
 
 void D3D11On12::OnDraw()
 {
+	HR(mCommandAllocator->Reset());
+	HR(mCommandList->Reset(mCommandAllocator.Get(), nullptr));
 
+	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(mRtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), mCurrBackbufferIndex, mRtvDescriptorHeapSize);
+	FLOAT backGroundColor[4] = { 0.75f, 0.25f, 0.25f, 1.0f };
+
+
+	mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(
+		mBackBufferPointer[mCurrBackbufferIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
+
+	mCommandList->OMSetRenderTargets(1, &rtvHandle, false, nullptr);
+	mCommandList->ClearRenderTargetView(rtvHandle, backGroundColor, 0, nullptr);
+
+	mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(
+		mBackBufferPointer[mCurrBackbufferIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+
+
+	HR(mCommandList->Close());
+	ID3D12CommandList* cmdLists[] = { mCommandList.Get() };
+	mCommandQueue->ExecuteCommandLists(_countof(cmdLists), cmdLists);
+
+	HR(mSwapChain->Present(1, 0));
+	mCurrBackbufferIndex = mSwapChain->GetCurrentBackBufferIndex(); // <= mCurrBackbufferIndex = (mCurrBackbufferIndex + 1) % 3;
+
+	FlushCommandQueue();
 }
 
 void D3D11On12::OnKeyUp(WPARAM btnState, UINT x, UINT y)
@@ -31,10 +56,13 @@ void D3D11On12::OnKeyDown(WPARAM btnState, UINT x, UINT y)
 
 void D3D11On12::OnDestroy()
 {
-
+	if (m12Device != nullptr)
+	{
+		FlushCommandQueue();
+	}
 }
 
-void D3D11On12::LoadPipeline()
+void D3D11On12::LoadGraphicsDevice()
 {
 	UINT dxgiFactoryFlag = 0;
 	UINT d3d11DeviceFlag = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
@@ -72,6 +100,7 @@ void D3D11On12::LoadPipeline()
 	Microsoft::WRL::ComPtr<ID3D12InfoQueue> infoQueue;
 	HR(m12Device->QueryInterface(infoQueue.GetAddressOf()));
 
+	/* Removing INVALID_HANDLE_VALUE Warning Statements from Debugging Layer. */
 	D3D12_MESSAGE_SEVERITY messageSeverity[] = {
 		D3D12_MESSAGE_SEVERITY_INFO
 	};
@@ -87,6 +116,30 @@ void D3D11On12::LoadPipeline()
 	infoQueueFilter.DenyList.NumIDs = _countof(messageID);
 
 	HR(infoQueue->PushStorageFilter(&infoQueueFilter));
+
+	/* DXSampleHelper.h > Remove warning statements that appear when "throw" in the debugging layer. */
+	infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
+	infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true);
+	infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, false);
+
+	/* D3D12 ERROR: ID3D12CommandQueue::Present: Resource state (0x800: D3D12_RESOURCE_STATE_COPY_SOURCE) (promoted from COMMON state) of resource (0x000001F6BE05D070:'Unnamed ID3D12Resource Object') (subresource: 0) must be in COMMON state when transitioning to use in a different Command List type, because resource state on previous Command List type : D3D12_COMMAND_LIST_TYPE_COPY, is actually incompatible and different from that on the next Command List type : D3D12_COMMAND_LIST_TYPE_DIRECT. [ RESOURCE_MANIPULATION ERROR #990: RESOURCE_BARRIER_MISMATCHING_COMMAND_LIST_TYPE]
+D3D12: **BREAK** enabled for the previous message, which was: [ ERROR RESOURCE_MANIPULATION #990: RESOURCE_BARRIER_MISMATCHING_COMMAND_LIST_TYPE ]. */
+	// This is a bug in the DXGI Debug Layer interaction with the DX12 Debug Layer Windows 11.
+	// SOLUTION> https://stackoverflow.com/questions/69805245/directx-12-application-is-crashing-in-windows-11
+	D3D12_MESSAGE_ID hide[] =
+	{
+		D3D12_MESSAGE_ID_MAP_INVALID_NULLRANGE,
+		D3D12_MESSAGE_ID_UNMAP_INVALID_NULLRANGE,
+		// Workarounds for debug layer issues on hybrid-graphics systems
+		D3D12_MESSAGE_ID_EXECUTECOMMANDLISTS_WRONGSWAPCHAINBUFFERREFERENCE,
+		D3D12_MESSAGE_ID_RESOURCE_BARRIER_MISMATCHING_COMMAND_LIST_TYPE,
+	};
+	D3D12_INFO_QUEUE_FILTER filter = {};
+	filter.DenyList.NumIDs = static_cast<UINT>(std::size(hide));
+	filter.DenyList.pIDList = hide;
+	infoQueue->AddStorageFilterEntries(&filter);
+
+	infoQueue->Release();
 #endif
 
 	D3D12_COMMAND_QUEUE_DESC commandQueueDesc = {};
@@ -96,6 +149,11 @@ void D3D11On12::LoadPipeline()
 	commandQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
 	HR(m12Device->CreateCommandQueue(&commandQueueDesc, IID_PPV_ARGS(mCommandQueue.GetAddressOf())));
+	HR(m12Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(mCommandAllocator.GetAddressOf())));
+	HR(m12Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, mCommandAllocator.Get(), nullptr, IID_PPV_ARGS(mCommandList.GetAddressOf())));
+	HR(mCommandList->Close());
+
+	HR(m12Device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(mFence.GetAddressOf())));
 
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc1 = {};
 	swapChainDesc1.BufferCount = gBackBufferCount;
@@ -116,7 +174,7 @@ void D3D11On12::LoadPipeline()
 	HR(dxgiFactory->MakeWindowAssociation(WindowApplication::gHwnd, DXGI_MWA_NO_ALT_ENTER));
 	HR(swapChain.As(&mSwapChain));
 
-	mBackBufferIndex = mSwapChain->GetCurrentBackBufferIndex();
+	mCurrBackbufferIndex = mSwapChain->GetCurrentBackBufferIndex();
 
 	Microsoft::WRL::ComPtr<ID3D11Device> device11 = nullptr;
 	HR(D3D11On12CreateDevice(m12Device.Get(),
@@ -140,7 +198,7 @@ void D3D11On12::LoadPipeline()
 	mD2D1Factory->GetDesktopDpi(&dpiX, &dpiY);
 #pragma warning(pop)
 
-	D2D1_BITMAP_PROPERTIES1 bitmapProperties =D2D1::BitmapProperties1(D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
+	D2D1_BITMAP_PROPERTIES1 bitmapProperties = D2D1::BitmapProperties1(D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
 		D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED), dpiX, dpiY);
 
 	{
@@ -154,5 +212,49 @@ void D3D11On12::LoadPipeline()
 		mRtvDescriptorHeapSize = m12Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	}
 
+	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(mRtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+	for (UINT i = 0; i < gBackBufferCount; ++i)
+	{
+		HR(mSwapChain->GetBuffer(i, IID_PPV_ARGS(mBackBufferPointer[i].GetAddressOf())));
+		m12Device->CreateRenderTargetView(mBackBufferPointer[i].Get(), nullptr, rtvHandle);
+		rtvHandle.Offset(1, mRtvDescriptorHeapSize);
 
+		D3D11_RESOURCE_FLAGS resourceFlags = { D3D11_BIND_RENDER_TARGET };
+		HR(m11On12Device->CreateWrappedResource(
+			mBackBufferPointer[i].Get(), &resourceFlags,
+			D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT,
+			IID_PPV_ARGS(mWrappedBackbuffer[i].GetAddressOf())));
+
+		Microsoft::WRL::ComPtr<IDXGISurface> surface;
+		HR(mWrappedBackbuffer[i].As(&surface));
+		HR(mD2D1DeviceContext->CreateBitmapFromDxgiSurface(surface.Get(), bitmapProperties, mD2D1Backbuffer[i].GetAddressOf()));
+	}
+}
+
+void D3D11On12::LoadPipeline()
+{
+	HR(mCommandList->Reset(mCommandAllocator.Get(), nullptr));
+
+
+
+	HR(mCommandList->Close());
+	ID3D12CommandList* cmdLists[] = { mCommandList.Get() };
+	mCommandQueue->ExecuteCommandLists(_countof(cmdLists), cmdLists);
+
+	FlushCommandQueue();
+}
+
+void D3D11On12::FlushCommandQueue()
+{
+	++mCurrFenceCount;
+	HR(mCommandQueue->Signal(mFence.Get(), mCurrFenceCount));
+
+	if (mFence->GetCompletedValue() < mCurrFenceCount)
+	{
+		HANDLE hEvent = CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS);
+		HR(mFence->SetEventOnCompletion(mCurrFenceCount, hEvent));
+
+		WaitForSingleObjectEx(hEvent, 0xffffffff, FALSE);
+		CloseHandle(hEvent);
+	}
 }
