@@ -1,0 +1,8 @@
+# ninja log v5
+12	2352	6816760946949228	ExecuteIndirect/CMakeFiles/ExecuteIndirect.dir/WindowApplication.cpp.obj	ec215803609f085e
+20	2356	6816760946983997	ExecuteIndirect/CMakeFiles/ExecuteIndirect.dir/Utils/Utils.cpp.obj	c7854801bcade993
+34	2362	6816760947078359	ExecuteIndirect/CMakeFiles/ExecuteIndirect.dir/DXSample.cpp.obj	1b2d87efa42890a8
+6	2364	6816760947078359	ExecuteIndirect/CMakeFiles/ExecuteIndirect.dir/Main.cpp.obj	64cbc6aea717ac46
+27	2366	6816760947118534	ExecuteIndirect/CMakeFiles/ExecuteIndirect.dir/Utils/DXSampleHelper.cpp.obj	35779811be5af37a
+0	2374	6816760947213328	ExecuteIndirect/CMakeFiles/ExecuteIndirect.dir/D3D11On12.cpp.obj	cd14c058582fd9cf
+2375	2784	6816760951259486	ExecuteIndirect/ExecuteIndirect.exe	989d53dfd947223a

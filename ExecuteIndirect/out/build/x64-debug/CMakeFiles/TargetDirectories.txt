@@ -1,0 +1,5 @@
+C:/Users/parksangwo/Desktop/Github/MSDirectXAnalysis/ExecuteIndirect/out/build/x64-debug/CMakeFiles/edit_cache.dir
+C:/Users/parksangwo/Desktop/Github/MSDirectXAnalysis/ExecuteIndirect/out/build/x64-debug/CMakeFiles/rebuild_cache.dir
+C:/Users/parksangwo/Desktop/Github/MSDirectXAnalysis/ExecuteIndirect/out/build/x64-debug/ExecuteIndirect/CMakeFiles/ExecuteIndirect.dir
+C:/Users/parksangwo/Desktop/Github/MSDirectXAnalysis/ExecuteIndirect/out/build/x64-debug/ExecuteIndirect/CMakeFiles/edit_cache.dir
+C:/Users/parksangwo/Desktop/Github/MSDirectXAnalysis/ExecuteIndirect/out/build/x64-debug/ExecuteIndirect/CMakeFiles/rebuild_cache.dir
