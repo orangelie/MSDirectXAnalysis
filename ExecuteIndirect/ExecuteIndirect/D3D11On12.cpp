@@ -2,6 +2,7 @@
 
 D3D11On12::D3D11On12(INT clientWidth, INT clientHeight, const UNISTR clientName, bool isWarpDevice) : DXSample(clientWidth, clientHeight, clientName, isWarpDevice)
 {
+
 }
 
 void D3D11On12::OnInit()
